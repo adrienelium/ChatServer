@@ -17,6 +17,20 @@ public class ClientThread implements Runnable,Observable{
 		private BufferedReader in;
 		private PrintWriter out;
 		
+		private boolean etatUser;
+		
+		/**
+		 * @return the etatUser
+		 */
+		public boolean isEtatUser() {
+			return etatUser;
+		}
+		/**
+		 * @param etatUser the etatUser to set
+		 */
+		public void setEtatUser(boolean etatUser) {
+			this.etatUser = etatUser;
+		}
 		private ArrayList<Observateur> mesObservateur;
 		
 		public ClientThread(Socket socket2,BufferedReader in,PrintWriter out, InetAddress inetAddress, String pseudo2) {
@@ -26,6 +40,8 @@ public class ClientThread implements Runnable,Observable{
 			this.socket = socket2;
 			this.pseudo = pseudo2;
 			mesObservateur = new ArrayList<Observateur>();
+			
+			setEtatUser(true);
 		}
 		/**
 		 * @return the socket
@@ -45,18 +61,21 @@ public class ClientThread implements Runnable,Observable{
 		public String getIp() {
 			return ip;
 		}
+		
 		/**
 		 * @param socket the socket to set
 		 */
 		public void setSocket(Socket socket) {
 			this.socket = socket;
 		}
+		
 		/**
 		 * @param pseudo the pseudo to set
 		 */
 		public void setPseudo(String pseudo) {
 			this.pseudo = pseudo;
 		}
+		
 		/**
 		 * @param ip the ip to set
 		 */
@@ -76,8 +95,8 @@ public class ClientThread implements Runnable,Observable{
 		@Override
 		public void run() {
 			// TODO Ecoute les messages envoyer par l'utilisateur et notifie l'observateur pool client
-			boolean var = true;
-			while (var) {
+			
+			while (etatUser) {
 				try {
 					in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 					String messageDistant = in.readLine();
@@ -85,12 +104,15 @@ public class ClientThread implements Runnable,Observable{
 					//System.err.println(messageDistant);
 					
 					this.dernierMessage = messageDistant;
-					notifyAllObservateur();
+					notifyAllObservateurs();
+					
+					//Thread.sleep(500);
 					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					var = false;
+					etatUser = false;
 					System.err.println(this.pseudo + " s'est déconnecté !");
+					this.dernierMessage = this.pseudo + " s'est déconnecté !";
 					//e.printStackTrace();
 				}
 			}
@@ -103,14 +125,14 @@ public class ClientThread implements Runnable,Observable{
 			
 		}
 		@Override
-		public void notifyAllObservateur() {
+		public synchronized void notifyAllObservateurs() {
 			// TODO Auto-generated method stub
 			for (Observateur obs : mesObservateur) {
 				obs.afficherNotification(this);
 			}
 			
 		}
-		public void writeAll(String string) {
+		public synchronized void writeAll(String string) {
 			// TODO Auto-generated method stub
 			out.println(string);
 			out.flush();

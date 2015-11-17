@@ -24,7 +24,7 @@ public class SocketServ implements Runnable {
 	@Override
 	public void run() {
 		
-		while (true) {
+		while (!Thread.interrupted()) {
 			
 			try {
 				
@@ -36,16 +36,32 @@ public class SocketServ implements Runnable {
 				PrintWriter out = new PrintWriter(socket.getOutputStream());
 				
 				this.pool.addClient(socket,in,out, pseudo); // Envoie de l'utilisateur au gestionnaire de pool
-				System.out.println("Connexion d'un utilisateur");
+				System.out.println(pseudo + " s'est conntecter");
 				
 
 
-			}catch (IOException e) {
+			} catch (SocketException e) {
+				if (e.getMessage() == "socket closed") {
+					System.out.println("Socket fermer, tout est bon");
+				}
+			}			
+			catch (IOException e) {
 				e.printStackTrace();
 			}
 			
 		}
 		
+	}
+
+	public void stop() {
+		// TODO Auto-generated method stub 
+		this.pool.flushClient();
+		try {
+			this.serversocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

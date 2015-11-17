@@ -39,11 +39,10 @@ public class ClientPool implements Observateur{
 	}
 
 	private void dispatchNewMessage(String pseudo, String message) {
-		System.err.println("[" + pseudo + "] : " + message);
+		//System.err.println("[" + pseudo + "] : " + message);
 		for (ClientThread cli: mesClientThread) {
 
 			cli.writeAll("[" + pseudo + "] : " + message);
-
 
 		}
 	}
@@ -51,7 +50,16 @@ public class ClientPool implements Observateur{
 	@Override
 	public void afficherNotification(ClientThread cli) {
 		// TODO il faudra ajouter le dechiffrement des données recu, clientpool implemente donc l'interface cypher
+		if (!cli.isEtatUser()) {
+			mesClientThread.remove(cli);
+		}
+		
 		dispatchNewMessage(cli.getPseudo(),cli.getMessage());
+		
+	}
+
+	public void flushClient() {
+		// TODO Auto-generated method stub
 		
 	}
 
