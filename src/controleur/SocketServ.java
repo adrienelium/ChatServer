@@ -3,6 +3,7 @@ package controleur;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.*;
 
 public class SocketServ implements Runnable {
@@ -32,7 +33,9 @@ public class SocketServ implements Runnable {
 				BufferedReader in = new BufferedReader (new InputStreamReader (socket.getInputStream()));
 				String pseudo = in.readLine();
 				
-				this.pool.addClient(socket, pseudo); // Envoie de l'utilisateur au gestionnaire de pool
+				PrintWriter out = new PrintWriter(socket.getOutputStream());
+				
+				this.pool.addClient(socket,in,out, pseudo); // Envoie de l'utilisateur au gestionnaire de pool
 				System.out.println("Connexion d'un utilisateur");
 				
 

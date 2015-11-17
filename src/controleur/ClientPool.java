@@ -1,7 +1,6 @@
 package controleur;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -9,16 +8,20 @@ import java.util.ArrayList;
 public class ClientPool implements Observateur{
 
 	private ArrayList<ClientThread> mesClientThread;
+	
+	public ClientPool() {
+		mesClientThread = new ArrayList<ClientThread>();
+	}
 
-	private PrintWriter out;
-
-	public void addClient(Socket socket,String pseudo) {
-		// TODO Auto-generated method stub
-		ClientThread cli = new ClientThread(socket,socket.getInetAddress(),pseudo);
+	public void addClient(Socket socket,BufferedReader in, PrintWriter out,String pseudo) {
+		
+		ClientThread cli = new ClientThread(socket,in,out,socket.getInetAddress(),pseudo);
+		cli.addObservateur(this);
+		cli.bienvenue();
+		
 		mesClientThread.add(cli);
 		new Thread(cli).start();
-
-		notifyUser(socket,pseudo);
+		
 		notifyAllUsers(socket,pseudo);
 	}
 
@@ -27,36 +30,11 @@ public class ClientPool implements Observateur{
 		// TODO notifier tous les utilisateurs du nouveau user connecté
 
 		for (ClientThread cli: mesClientThread) {
-
-			try {
-
-				if (!cli.getSocket().equals(socket)) {
-					out = new PrintWriter(cli.getSocket().getOutputStream());
-					out.println(pseudo + " s'est connecté !");
-					out.flush();
-				}
-
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			
+			cli.writeAll(pseudo + " s'est connecté !");
 
 		}
 
-
-	}
-
-	private void notifyUser(Socket socket,String pseudo) {
-		// TODO notifier l'utilisateur de la réussite de sa connexion
-		try {
-			out = new PrintWriter(socket.getOutputStream());
-			out.println("Bienvenue " + pseudo + ", amuse toi bien sur le chat IRC");
-			out.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 	}
 
@@ -64,16 +42,8 @@ public class ClientPool implements Observateur{
 		System.err.println("[" + pseudo + "] : " + message);
 		for (ClientThread cli: mesClientThread) {
 
-			try {
+			cli.writeAll("[" + pseudo + "] : " + message);
 
-				out = new PrintWriter(cli.getSocket().getOutputStream());
-				out.println("[" + pseudo + "] : " + message);
-				out.flush();
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 
 		}
 	}
