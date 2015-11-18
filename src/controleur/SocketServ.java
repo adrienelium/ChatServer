@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 
+import tool.Crypto;
+
 public class SocketServ implements Runnable {
 	
 	private ServerSocket serversocket;
@@ -36,7 +38,8 @@ public class SocketServ implements Runnable {
 				PrintWriter out = new PrintWriter(socket.getOutputStream());
 				
 				this.pool.addClient(socket,in,out, pseudo); // Envoie de l'utilisateur au gestionnaire de pool
-				System.out.println(pseudo + " s'est conntecter");
+				
+				System.out.println(Crypto.decodeChaine(pseudo) + " s'est connecter");
 				
 
 

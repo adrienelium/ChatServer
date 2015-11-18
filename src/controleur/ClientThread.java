@@ -8,6 +8,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import tool.Crypto;
+
 public class ClientThread implements Runnable,Observable{
 		private Socket socket;
 		private String pseudo;
@@ -112,7 +114,7 @@ public class ClientThread implements Runnable,Observable{
 					// TODO Auto-generated catch block
 					etatUser = false;
 					System.err.println(this.pseudo + " s'est déconnecté !");
-					this.dernierMessage = this.pseudo + " s'est déconnecté !";
+					this.dernierMessage = Crypto.encodeChaine(this.pseudo + " s'est déconnecté !");
 					//e.printStackTrace();
 				}
 			}
@@ -137,9 +139,9 @@ public class ClientThread implements Runnable,Observable{
 			out.println(string);
 			out.flush();
 		}
-		public void bienvenue() {
+		public void bienvenue(String str) {
 			// TODO Auto-generated method stub
-			out.println("Bienvenue " + pseudo + ", amuse toi bien sur le chat IRC");
+			out.println(str);
 			out.flush();
 
 		}

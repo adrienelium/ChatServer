@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+
+import tool.Crypto;
+import tool.LogWriter;
 
 public class ClientPool implements Observateur{
 
@@ -11,13 +15,16 @@ public class ClientPool implements Observateur{
 	
 	public ClientPool() {
 		mesClientThread = new ArrayList<ClientThread>();
+		
 	}
 
 	public void addClient(Socket socket,BufferedReader in, PrintWriter out,String pseudo) {
 		
 		ClientThread cli = new ClientThread(socket,in,out,socket.getInetAddress(),pseudo);
 		cli.addObservateur(this);
-		cli.bienvenue();
+		
+		String str = Crypto.encodeChaine("Bienvenue " + Crypto.decodeChaine(pseudo) + ", amuse toi bien sur le chat IRC");
+		cli.bienvenue(str);
 		
 		mesClientThread.add(cli);
 		new Thread(cli).start();
@@ -28,10 +35,12 @@ public class ClientPool implements Observateur{
 	private void notifyAllUsers(Socket socket,String pseudo) {
 
 		// TODO notifier tous les utilisateurs du nouveau user connecté
-
+		writeLogFile(pseudo,"#s'est connecter#");
 		for (ClientThread cli: mesClientThread) {
+			//System.err.println("Notifier");
 			
-			cli.writeAll(pseudo + " s'est connecté !");
+			String str = Crypto.encodeChaine(Crypto.decodeChaine(pseudo) + " s'est connecté !");
+			cli.writeAll(str);
 
 		}
 
@@ -40,9 +49,10 @@ public class ClientPool implements Observateur{
 
 	private void dispatchNewMessage(String pseudo, String message) {
 		//System.err.println("[" + pseudo + "] : " + message);
-		for (ClientThread cli: mesClientThread) {
 
-			cli.writeAll("[" + pseudo + "] : " + message);
+		for (ClientThread cli: mesClientThread) {
+			String str = "[" + pseudo + "] : " + message;
+			cli.writeAll(Crypto.encodeChaine(str));
 
 		}
 	}
@@ -50,16 +60,30 @@ public class ClientPool implements Observateur{
 	@Override
 	public void afficherNotification(ClientThread cli) {
 		// TODO il faudra ajouter le dechiffrement des données recu, clientpool implemente donc l'interface cypher
+		// DECHIFFRER
+		
+		writeLogFile(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
 		if (!cli.isEtatUser()) {
 			mesClientThread.remove(cli);
 		}
 		
-		dispatchNewMessage(cli.getPseudo(),cli.getMessage());
+		dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
 		
 	}
 
 	public void flushClient() {
 		// TODO Auto-generated method stub
+		for (ClientThread cli: mesClientThread) {
+
+			cli.setEtatUser(false);
+
+		}
+		
+	}
+	
+	private synchronized void writeLogFile(String pseudo,String message) {
+		
+		LogWriter.getInstance().writeMessage("[" + pseudo + "] : " + message);
 		
 	}
 
