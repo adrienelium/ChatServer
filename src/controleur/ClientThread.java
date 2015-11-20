@@ -100,16 +100,17 @@ public class ClientThread implements Runnable,Observable{
 			// TODO Ecoute les messages envoyer par l'utilisateur et notifie l'observateur pool client
 			
 			while (!Thread.interrupted()) {
+				
 				try {
 					in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 					String messageDistant = in.readLine();
-					
-					//System.err.println(messageDistant);
-					
 					this.dernierMessage = messageDistant;
+					if (messageDistant == "" || messageDistant == null) {
+						etatUser = false;
+						this.dernierMessage = " s'est déconnecté !";
+					}
 					notifyAllObservateurs();
 					
-					//Thread.sleep(500);
 					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

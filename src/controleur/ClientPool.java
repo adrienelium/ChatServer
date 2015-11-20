@@ -46,6 +46,18 @@ public class ClientPool implements Observateur{
 
 
 	}
+	
+	
+	private void notifyAllUsersDeco(String pseudo) {
+		// TODO Auto-generated method stub
+		for (ClientThread cli: mesClientThread) {
+			//System.err.println("Notifier");
+			
+			String str = Crypto.encodeChaine(Crypto.decodeChaine(pseudo) + " s'est deconnecté !");
+			cli.writeAll(str);
+
+		}
+	}
 
 	private void dispatchNewMessage(String pseudo, String message) {
 		//System.err.println("[" + pseudo + "] : " + message);
@@ -60,19 +72,26 @@ public class ClientPool implements Observateur{
 	@Override
 	public void afficherNotification(ClientThread cli) {
 
-		writeLogFile(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
+		
 		if (!cli.isEtatUser()) {
-			dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
+			writeLogFile(Crypto.decodeChaine(cli.getPseudo())," s'est deconnecter");
+			
 			cli.getThread().interrupt();
 			mesClientThread.remove(cli);
+			notifyAllUsersDeco(cli.getPseudo());
+			
+			
 		}
 		else {
+			writeLogFile(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
 			dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
 		}
 		
 		
 		
 	}
+
+	
 
 	public void flushClient() {
 		// TODO Auto-generated method stub

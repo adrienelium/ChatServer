@@ -28,7 +28,7 @@ public class LogWriter {
 	
 	public void writeMessage(String str) {
 		// TODO : rajouter une ligne sur le fichier de log
-		System.err.println("Ecriture sur log.txt");
+		//System.err.println("Ecriture sur log.txt");
 		try {
 			fw.write(str + "\r\n");
 			fw.flush();
