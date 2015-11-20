@@ -1,4 +1,4 @@
-package controleur;
+package managerProtocol;
 
 import java.io.IOException;
 import java.net.InetAddress;
