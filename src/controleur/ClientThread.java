@@ -34,6 +34,7 @@ public class ClientThread implements Runnable,Observable{
 			this.etatUser = etatUser;
 		}
 		private ArrayList<Observateur> mesObservateur;
+		private Thread th;
 		
 		public ClientThread(Socket socket2,BufferedReader in,PrintWriter out, InetAddress inetAddress, String pseudo2) {
 			this.in = in;
@@ -98,7 +99,7 @@ public class ClientThread implements Runnable,Observable{
 		public void run() {
 			// TODO Ecoute les messages envoyer par l'utilisateur et notifie l'observateur pool client
 			
-			while (etatUser) {
+			while (!Thread.interrupted()) {
 				try {
 					in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 					String messageDistant = in.readLine();
@@ -113,8 +114,11 @@ public class ClientThread implements Runnable,Observable{
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					etatUser = false;
-					System.err.println(this.pseudo + " s'est déconnecté !");
-					this.dernierMessage = Crypto.encodeChaine(this.pseudo + " s'est déconnecté !");
+					System.err.println(Crypto.decodeChaine(this.pseudo) + " s'est déconnecté !");
+					this.dernierMessage = " s'est déconnecté !";
+					notifyAllObservateurs();
+					//LogWriter.getInstance().writeMessage(this.pseudo + " s'est déconnecté !");
+					//this.dernierMessage = Crypto.encodeChaine(this.pseudo + " s'est déconnecté !");
 					//e.printStackTrace();
 				}
 			}
@@ -144,5 +148,13 @@ public class ClientThread implements Runnable,Observable{
 			out.println(str);
 			out.flush();
 
+		}
+		public void setThread(Thread th) {
+			// TODO Auto-generated method stub
+			this.th = th;
+		}
+		
+		public Thread getThread() {
+			return this.th;
 		}
 }

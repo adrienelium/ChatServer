@@ -12,7 +12,12 @@ public class Crypto {
 	public static String decodeChaine(String str) {
 		String decoded = "";
 		if (str != null) {
-			decoded = new String(DatatypeConverter.parseBase64Binary(str));
+			try {
+				decoded = new String(DatatypeConverter.parseBase64Binary(str));
+			} catch (ArrayIndexOutOfBoundsException e) {
+				System.out.println("La chaine est vide");
+			}
+			
 		}
 			
 		return decoded;

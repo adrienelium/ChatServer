@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
 
 import tool.Crypto;
 import tool.LogWriter;
@@ -15,7 +14,6 @@ public class ClientPool implements Observateur{
 	
 	public ClientPool() {
 		mesClientThread = new ArrayList<ClientThread>();
-		
 	}
 
 	public void addClient(Socket socket,BufferedReader in, PrintWriter out,String pseudo) {
@@ -27,7 +25,9 @@ public class ClientPool implements Observateur{
 		cli.bienvenue(str);
 		
 		mesClientThread.add(cli);
-		new Thread(cli).start();
+		Thread th = new Thread(cli);
+		th.start();
+		cli.setThread(th);
 		
 		notifyAllUsers(socket,pseudo);
 	}
@@ -35,7 +35,7 @@ public class ClientPool implements Observateur{
 	private void notifyAllUsers(Socket socket,String pseudo) {
 
 		// TODO notifier tous les utilisateurs du nouveau user connecté
-		writeLogFile(pseudo,"#s'est connecter#");
+		writeLogFile(Crypto.decodeChaine(pseudo)," s'est connecter");
 		for (ClientThread cli: mesClientThread) {
 			//System.err.println("Notifier");
 			
@@ -59,15 +59,18 @@ public class ClientPool implements Observateur{
 
 	@Override
 	public void afficherNotification(ClientThread cli) {
-		// TODO il faudra ajouter le dechiffrement des données recu, clientpool implemente donc l'interface cypher
-		// DECHIFFRER
-		
+
 		writeLogFile(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
 		if (!cli.isEtatUser()) {
+			dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
+			cli.getThread().interrupt();
 			mesClientThread.remove(cli);
 		}
+		else {
+			dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
+		}
 		
-		dispatchNewMessage(Crypto.decodeChaine(cli.getPseudo()),Crypto.decodeChaine(cli.getMessage()));
+		
 		
 	}
 
@@ -76,6 +79,7 @@ public class ClientPool implements Observateur{
 		for (ClientThread cli: mesClientThread) {
 
 			cli.setEtatUser(false);
+			cli.getThread().interrupt();
 
 		}
 		
